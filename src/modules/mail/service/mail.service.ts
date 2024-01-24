@@ -17,7 +17,7 @@ export class MailService {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
     private readonly mailerService: MailerService,
-    
+
   ) {
     this.siteUrl = configService.get(SITE_URL);
     this.contactEmail = configService.get(CONTACT_EMAIL);
@@ -26,8 +26,9 @@ export class MailService {
 
 
 
+
   private async generatePdfFromHtml(html: string): Promise<Buffer> {
- 
+
     return new Promise<Buffer>((resolve, reject) => {
       pdf.create(html, {
         format: 'Letter', // Specify the desired page format (e.g., 'A4', 'Letter', etc.)
@@ -36,7 +37,7 @@ export class MailService {
           bottom: "100px",
         },
         printBackground: true, // Set zoom factor to 1 for no zoom
-        timeoutSeconds: 3000, 
+        timeoutSeconds: 3000,
         childProcessOptions: {
           env: {
             OPENSSL_CONF: '/dev/null',
@@ -54,47 +55,133 @@ export class MailService {
 
 
   async sendNewTransactionEmail(to: string, context?: any) {
-    const filePath =  path.join(__dirname, '../templates/invoice.hbs');
+    const filePath = path.join(__dirname, '../templates/invoice.hbs');
     const templete = await fs.promises.readFile(filePath, 'utf-8');
     const templateData = handlebars.compile(templete);
 
-    const html = templateData({email:to,...context});
+    const html = templateData({ email: to, ...context });
 
-    
-   const pdf = await this.generatePdfFromHtml(html);
-  
-  await sgMail.send({
-    to,
-    from: 'hello@io.net',
-    subject: 'IO Notifications (Transaction)',
-    html,
-    attachments: [
-      {
-        content: pdf.toString('base64'),
-        filename: 'invoice.pdf',
-        type: 'application/pdf',
-        disposition: 'attachment',
-        contentId: 'invoice_pdf',
-      },
-    ],
-  });
+
+    const pdf = await this.generatePdfFromHtml(html);
+
+    await sgMail.send({
+      to,
+      from: 'hello@io.net',
+      subject: 'IO Notifications (Transaction)',
+      html,
+      attachments: [
+        {
+          content: pdf.toString('base64'),
+          filename: 'invoice.pdf',
+          type: 'application/pdf',
+          disposition: 'attachment',
+          contentId: 'invoice_pdf',
+        },
+      ],
+    });
   }
 
 
   async sendDeviceStatusEmail(to: string, context?: any) {
-    const filePath =  path.join(__dirname, '../templates/device-notification.hbs');
+    const filePath = path.join(__dirname, '../templates/job-destroyed.hbs');
     const templete = await fs.promises.readFile(filePath, 'utf-8');
     const templateData = handlebars.compile(templete);
 
-    const html = templateData({email:to,...context});
-  
-  await sgMail.send({
-    to,
-    from: 'hello@io.net',
-    subject: 'IO Notifications (Device)',
-    html,
-    
-  });
+    const html = templateData({ email: to, ...context });
+
+    await sgMail.send({
+      to,
+      from: 'hello@io.net',
+      subject: 'IO Notifications (Device)',
+      html,
+
+    });
   }
- 
+
+
+
+  async sendJobInitiatedEmail(to: string, context?: any) {
+    const filePath = path.join(__dirname, '../templates/job-template.hbs');
+    const templete = await fs.promises.readFile(filePath, 'utf-8');
+    const templateData = handlebars.compile(templete);
+
+    const html = templateData({ email: to, ...context});
+
+    await sgMail.send({
+      to,
+      from: 'hello@io.net',
+      subject: 'IO Device (Hired)',
+      html,
+
+    });
+  }
+
+
+  async sendJobCompletedEmail(to: string, context?: any) {
+    const filePath = path.join(__dirname, '../templates/job-template.hbs');
+    const templete = await fs.promises.readFile(filePath, 'utf-8');
+    const templateData = handlebars.compile(templete);
+
+    const html = templateData({ email: to, ...context});
+
+    await sgMail.send({
+      to,
+      from: 'hello@io.net',
+      subject: 'IO Job (Completed)',
+      html,
+
+    });
+  }
+
+
+
+
+  async sendDeviceConnectionSuccessMail(to: string, context?: any) {
+    const filePath = path.join(__dirname, '../templates/device-connection-success.hbs');
+    const templete = await fs.promises.readFile(filePath, 'utf-8');
+    const templateData = handlebars.compile(templete);
+
+    const html = templateData({ email: to, ...context, timeStamp: new Date().toLocaleString() });
+
+    await sgMail.send({
+      to,
+      from: 'hello@io.net',
+      subject: 'IO.NET(Device Connection Success)',
+      html,
+
+    });
+  }
+
+
+  async sendDeviceConnectionFailureMail(to: string, context?: any) {
+    const filePath = path.join(__dirname, '../templates/device-connection-failure.hbs');
+    const templete = await fs.promises.readFile(filePath, 'utf-8');
+    const templateData = handlebars.compile(templete);
+
+    const html = templateData({ email: to, ...context, timeStamp: new Date().toLocaleString() });
+
+    await sgMail.send({
+      to,
+      from: 'hello@io.net',
+      subject: 'IO.NET (Device Connection Failure)',
+      html,
+
+    });
+  }
+
+  async sendJobDestroyedEmail(to: string, context?: any) {
+    const filePath = path.join(__dirname, '../templates/job-destroyed.hbs');
+    const templete = await fs.promises.readFile(filePath, 'utf-8');
+    const templateData = handlebars.compile(templete);
+
+    const html = templateData({ email: to, ...context});
+
+    await sgMail.send({
+      to,
+      from: 'hello@io.net',
+      subject: 'IO Job (Destroyed)',
+      html,
+    });
+  }
+
 }

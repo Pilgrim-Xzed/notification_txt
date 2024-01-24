@@ -28,6 +28,6 @@ import { FcmClient } from './common/clients/fcm';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, PushService, FcmClient],
+  providers: [AppService],
 })
 export class AppModule {}
